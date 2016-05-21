@@ -1,40 +1,41 @@
 var assert = require('chai').assert
-var mockery = require('mockery')
-var sinon = require('sinon')
 
+var mockeryUtils = require('./utils/mockery_utils')
 var SpecDispatcher = require('./utils/specs_dispatcher')
-
 var ActionTypes = require('../app/constants/app_constants').ActionTypes
 
 
-describe('LayoutStore spec', function() {
+describe('Layout Store', function() {
 
-    var sandbox, layoutStore, dispatcher
+  var sandbox, layoutStore, dispatcher
 
-    before(function () {
-        dispatcher = new SpecDispatcher()
-        sandbox = sinon.sandbox.create()
-        mockery.enable({
-            warnOnUnregistered: false,
-            useCleanCache: true
-        })
+  before(() => {
+      dispatcher = new SpecDispatcher();
+      mockeryUtils.initDispatcher(dispatcher);
+      mockeryUtils.initForStores();
+      layoutStore = require('../app/stores/layout_store');
+  })
 
-        mockery.registerMock('../libs/flux/dispatcher/dispatcher', dispatcher)
-        mockery.registerMock('./account_store', {})
-        mockery.registerAllowables([
-            'node-event-emitter',
-            '../constants/app_constants',
-            '../libs/flux/store/store',
-            '../app/stores/layout_store'
-        ])
+  describe('Actions', () => {
+    it('TOASTS_SHOW', () => {
+      dispatcher.dispatch({type: ActionTypes.TOASTS_SHOW});
+      assert.equal(layoutStore.isToastHidden(), false);
+    });
+    it('TOASTS_HIDE', () => {
+      dispatcher.dispatch({type: ActionTypes.TOASTS_HIDE});
+      assert.equal(layoutStore.isToastHidden(), true);
+    });
+    it('INTENT_AVAILABLE', () => {
+      dispatcher.dispatch({
+        type: ActionTypes.INTENT_AVAILABLE,
+        value: true
+      });
+      assert.equal(layoutStore.isIntentAvailable(), true);
+    });
+  });
 
-        global.window = { innerWidth: 1600 }
-        layoutStore = require('../app/stores/layout_store')
-    })
-
-    after(function () {
-        mockery.disable()
-        sandbox.restore()
-    })
+  after(() => {
+    mockeryUtils.clean()
+  })
 
 })
